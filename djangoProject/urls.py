@@ -32,9 +32,14 @@ urlpatterns = [
 
     ### app02 ###
     path('dep/list/', views.dep_list),
-    path('dep/add/', views.add),
-    path('dep/del/', views.dele),
+    path('dep/add/', views.dep_add),
+    path('dep/del/', views.dep_del),
     # <<int:id>>代表传递url必须dep/edit/数字/
-    path('dep/edit/<int:id>/', views.edit),
+    path('dep/edit/<int:id>/', views.dep_edit),
+
+    path('usr/list/', views.user_list),
+    path('usr/add/', views.user_add),
+    path('usr/edit/<int:id>/', views.user_edit),
+    path('usr/del/', views.user_del),
 
 ]
