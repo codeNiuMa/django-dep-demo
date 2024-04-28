@@ -31,6 +31,7 @@ urlpatterns = [
     # path('orm/', views.orm),
 
     ### app02 ###
+    path('', views.index),
     path('dep/list/', views.dep_list),
     path('dep/add/', views.dep_add),
     path('dep/del/', views.dep_del),
@@ -41,5 +42,12 @@ urlpatterns = [
     path('usr/add/', views.user_add),
     path('usr/edit/<int:id>/', views.user_edit),
     path('usr/del/', views.user_del),
+
+    path('num/list/', views.num_list),
+    path('num/add/', views.num_add),
+    path('num/edit/<int:id>/', views.num_edit),
+    path('num/del/', views.num_del),
+
+    path('login/', views.login)
 
 ]
