@@ -1,16 +1,11 @@
 {% extends 'layout.html' %}
-{% load static %}
-
-{% block css %}
-    <link rel="stylesheet" href="{% static 'plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css' %}">
-{% endblock %}
-
 {% block content %}
     <div class="container">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">新建用户</h3>
+                <h3 class="panel-title">新建号码</h3>
             </div>
+
             <div class="panel-body">
                 <form method="post" novalidate>
                     {% csrf_token %}
@@ -19,31 +14,13 @@
                             <label>{{ field.label }}</label>
                             {{ field }}
                             <span style="color: maroon">{{ field.errors.0 }}</span>
+{#                            <input type="text" class="form-control" placeholder="部门名称" name="title"/>#}
                         </div>
                     {% endfor %}
-
                     <button type="submit" class="btn btn-primary">Save</button>
-
                 </form>
             </div>
         </div>
 
     </div>
-{% endblock %}
-
-{% block js %}
-    <script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
-    <script type="text/javascript">
-        $(function () {
-            $('#id_create_time').datepicker({
-                todayHighlight: true,
-                format: "yyyy-mm-dd",
-                language: "zh-CN",
-                autoclose: true
-
-            });
-        })
-
-    </script>
 {% endblock %}

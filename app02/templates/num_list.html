@@ -1,0 +1,70 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="container">
+
+        <div style="margin-bottom: 20px">
+            <a class="btn btn-success" href="/num/add/" target="_blank">
+                <span class="glyphicon glyphicon-plus-sign"></span>
+                Add PhoneNum
+            </a>
+
+            <div style="float: right;width: 300px;">
+                <form method="get">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Search for..."
+                               value="{{ value }}">
+                        <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </span>
+                    </div>
+                </form>
+
+            </div>
+
+
+        </div>
+
+        {#table#}
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-th-list"></span>
+                号码列表
+            </div>
+
+            <!-- Table -->
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    {% for field in form %}
+                        <th>{{ field.label }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for num in num_set %}
+                    <tr>
+                        <th>{{ num.id }}</th>
+                        <td>{{ num.mobile }}</td>
+                        <td>{{ num.price }}</td>
+                        <td>{{ num.get_level_display }}</td>
+                        <td>{{ num.get_status_display }}</td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="/num/edit/{{ num.id }}/">编辑</a>
+                            <a class="btn btn-danger  btn-sm" href="/num/del/?id={{ num.id }}">删除</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+        {{ page_string }}
+
+
+    </div>
+
+{% endblock %}
