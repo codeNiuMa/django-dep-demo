@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from app01 import views
 from app02 import views
+from app02.myviews import charts, upload, dep
 
 urlpatterns = [
     ### app01 ###
@@ -32,11 +33,13 @@ urlpatterns = [
 
     ### app02 ###
     path('', views.index),
-    path('dep/list/', views.dep_list),
-    path('dep/add/', views.dep_add),
-    path('dep/del/', views.dep_del),
+
+    path('dep/list/', dep.dep_list),
+    path('dep/add/', dep.dep_add),
+    path('dep/del/', dep.dep_del),
     # <<int:id>>代表传递url必须dep/edit/数字/
-    path('dep/edit/<int:id>/', views.dep_edit),
+    path('dep/edit/<int:id>/', dep.dep_edit),
+    path('dep/upload/', dep.dep_upload),
 
     path('usr/list/', views.user_list),
     path('usr/add/', views.user_add),
@@ -48,6 +51,24 @@ urlpatterns = [
     path('num/edit/<int:id>/', views.num_edit),
     path('num/del/', views.num_del),
 
-    path('login/', views.login)
+    path('login/', views.login),
+    path('logout/', views.logout),
+    path('img/', views.img_code),
+
+    path('task/', views.task),
+    path('task/ajax/', views.task_ajax),
+    path('task/add/', views.task_add),
+
+    path('order/list/', views.order_list),
+    path('order/add/', views.order_add),
+    path('order/del/', views.order_delete),
+    path('order/edit/', views.order_edit),
+
+    path('chart/list/', charts.chart_list),
+    path('chart/bar/', charts.chart_bar),
+    path('chart/pie/', charts.chart_pie),
+    path('chart/line/', charts.chart_line),
+
+    path('upload/list/', upload.upload_list)
 
 ]
