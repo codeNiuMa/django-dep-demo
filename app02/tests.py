@@ -1,13 +1,20 @@
 import hashlib
+import random
+from datetime import datetime
+from time import sleep
 
 from django.conf import settings
 from django.test import TestCase
+from pymysql import Connection
+
+
+# random.seed(2024)
 
 
 # Create your tests here.
 
 
-def shengcheng():
+def shengcheng_num():
     # INSERT INTO dj1.app02_prettynum (mobile, price, level, status)
     # VALUES ('15155980544', 50, 3, 1);
     num_list = [15722073289, 18615190982, 19670712167, 19866194005, 16696589751, 18864249501, 13380215088, 13246233931,
@@ -37,8 +44,6 @@ def shengcheng():
                 18185789843, 18738167645, 19049769346, 15742254915, 13960860131, 15033642813, 18837335984, 13879836800]
 
     # 生成随机数
-    import random
-    random.seed(2024)
     price = random.randint(10, 100)
     price_list = []
     level = random.randint(1, 4)
@@ -56,6 +61,54 @@ def shengcheng():
             f'INSERT INTO dj1.app02_prettynum (mobile, price, level, status) VALUES ({num_list[i]}, {price_list[i]}, {level_list[i]}, {status_list[i]});')
 
 
+def shengcheng_order():
+    cnt = 7
+
+    conn = Connection(host='localhost',
+                      port=3306,
+                      user='root',
+                      password='123456',
+                      autocommit=True
+                      )
+
+    # print(conn.get_server_info())  # 获取服务器信息8.0.36
+    cursor = conn.cursor()
+    conn.select_db('dj1')
+
+    # cursor.execute('create table test_pymysql(id int);')
+    for i in range(100):
+        h, m, s = (random.randint(0, 23)), (random.randint(0, 59)), (random.randint(0, 59))
+        rnd_oid = datetime.now().strftime("%Y%m%d") + f'{h:02d}{m:02d}{s:02d}' + str(random.randint(10000, 99999))
+
+        def rndChar():
+            # 定义字符的ASCII码范围
+            ascii_ranges = [
+                (48, 57),  # 数字 0-9
+                (65, 90),  # 大写字母 A-Z
+                (97, 122),  # 小写字母 a-z
+            ]
+            # 随机选择一个范围
+            chosen_range = random.choice(ascii_ranges)
+
+            # 在选定的范围内随机选择一个字符并返回
+            return chr(random.randint(chosen_range[0], chosen_range[1]))
+
+        title = 'order_'
+        for _ in range(6):
+            title += rndChar()
+        price = random.randint(10, 300)
+        status = random.randint(1, 2)
+        user_id = random.randint(1, 4)
+        print(f"INSERT INTO dj1.app02_order (id, oid, title, price, status, user_id) VALUES ({cnt}, {rnd_oid},'{title}', {price}, {status}, {user_id});")
+        cursor.execute(
+            f"INSERT INTO dj1.app02_order (id, oid, title, price, status, user_id) VALUES ({cnt}, {rnd_oid},'{title}', {price}, {status}, {user_id});")
+
+        sleep(0.5)
+        cnt+=1
+
+    conn.close()
+
+
 def md5(input_string):
     m = hashlib.md5(settings.SECRET_KEY.encode('utf-8'))
 
@@ -66,5 +119,59 @@ def md5(input_string):
     return m.hexdigest()
 
 
+def check_code(width=120, height=40, length=4, font_size=20):
+    code = []
+    from PIL import Image, ImageDraw
+    img = Image.new(mode='RGB', size=(width, height), color=(255, 255, 255))
+    draw = ImageDraw.Draw(img, mode='RGB')
+
+    def rndChar():
+        # 定义字符的ASCII码范围
+        ascii_ranges = [
+            (48, 57),  # 数字 0-9
+            (65, 90),  # 大写字母 A-Z
+            (97, 122),  # 小写字母 a-z
+        ]
+        # 随机选择一个范围
+        chosen_range = random.choice(ascii_ranges)
+
+        # 在选定的范围内随机选择一个字符并返回
+        return chr(random.randint(chosen_range[0], chosen_range[1]))
+
+    def rndColor():
+        # 随机颜色，不用255因为有点浅
+        return (random.randint(0, 200), random.randint(0, 200), random.randint(0, 200))
+
+    # 绘制字符
+    for i in range(length):
+        char = rndChar()
+        code.append(char)
+        h = random.randint(0, 3)
+        w = i * width / length + random.randint(-2, 5)
+        draw.text(xy=(w, h), text=char, fill=rndColor(), font_size=30)
+
+    # 绘制干扰像素点
+    for _ in range(40):
+        x, y = random.randint(0, width), random.randint(0, height)
+        draw.point(xy=(x, y), fill=(0, 0, 0))
+
+    # 绘制干扰圈
+    for _ in range(30):
+        x = random.randint(0, width)
+        y = random.randint(0, height)
+        draw.arc(xy=(x, y, x + 5, y + 5), start=random.randint(0, 180), end=random.randint(180, 360), fill=rndColor())
+
+    # 绘制干扰线
+    for i in range(5):
+        x1, y1 = random.randint(0, width), random.randint(0, height)
+        x2, y2 = random.randint(0, width), random.randint(0, height)
+        draw.line(xy=(x1, y1, x2, y2), fill=rndColor())
+
+    # img.save(r'F:\Code\PythonCode\djangoProject\app02\static\img\code.png')
+    return img, ''.join(code)
+
+
 if __name__ == '__main__':
-    print(md5('123456'))
+    # shengcheng_order()
+    # print(datetime.now().strftime('%Y%m%d'))
+    pass

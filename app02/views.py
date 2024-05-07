@@ -1,48 +1,22 @@
 import copy
+import json
 import math
+import random
+from datetime import datetime
+from io import BytesIO
 
 from django import forms
 from django.core.validators import RegexValidator
-from django.http import QueryDict
+from django.http import QueryDict, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 
 from app02.Fenye import Fenye
 from app02.models import *
-from app02.tests import md5
+from app02.tests import md5, check_code
 
 
 # Create your views here.
-def dep_list(request):
-    dep_set = Department.objects.all()
-
-    return render(request, 'dep_list.html', {'dep_set': dep_set})
-
-
-def dep_add(request):
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        Department.objects.create(title=title)
-        return redirect('/dep/list')
-
-    if request.method == 'GET':
-        return render(request, 'dep_add.html')
-
-
-def dep_del(request):
-    id = request.GET.get('id')
-    Department.objects.filter(id=id).delete()
-
-    return redirect('/dep/list')
-
-
-def dep_edit(request, id):
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        Department.objects.filter(id=id).update(title=title)
-        return redirect('/dep/list')
-    dep_data = Department.objects.filter(id=id).first()
-    return render(request, 'dep_edit.html', {'dep_data': dep_data})
-
 
 def user_list(request):
     user_set = UserInfo.objects.all()
@@ -132,8 +106,9 @@ class NumModelForm(forms.ModelForm):
 
 
 def num_list(request):
-    num_set = PrettyNum.objects.all()
+    # info_dict = request.session['info']
 
+    num_set = PrettyNum.objects.all()
     # 在这里实现一个查找功能
     query_dict: QueryDict = copy.deepcopy(request.GET)  # 保留GET的q查询参数
     query_dict._mutable = True
@@ -219,21 +194,26 @@ def num_edit(request, id):
 
 
 def index(request):
-    return redirect('/usr/list/')
+    return redirect('/login/')
 
 
 class LoginForm(forms.Form):
     name = forms.CharField(label='用户名', max_length=32, min_length=3,
                            error_messages={'max_length': '用户名最长为32位', 'min_length': '用户名最短为3位'},
-                           widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '请输入用户名'}))
+                           widget=forms.TextInput(attrs={'placeholder': 'root'}))
     password = forms.CharField(label='密码', max_length=32, min_length=3,
                                error_messages={'max_length': '密码最长为32位', 'min_length': '密码最短为3位'},
-                               widget=forms.PasswordInput(render_value=True)
+                               widget=forms.PasswordInput(render_value=True, attrs={'placeholder': '123456'})
                                )
+    code = forms.CharField(label='验证码', max_length=4, min_length=4,
+                           widget=forms.TextInput())
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
-            field.widget.attrs = {'class': 'form-control', 'placeholder': field.label}
+            if 'attrs' not in field.widget.__dict__:
+                field.widget.attrs = {}
+            field.widget.attrs.update({'class': 'form-control'})
 
     def clean_password(self):
         pwd = self.cleaned_data.get('password')
@@ -248,6 +228,7 @@ class LoginModelForm(forms.ModelForm):
 
 def login(request):
     if request.method == 'GET':
+        # check_code()
         form = LoginForm()
         return render(request, 'login.html', {'form': form})
 
@@ -255,11 +236,150 @@ def login(request):
         form = LoginForm(data=request.POST)
         if form.is_valid():
             # print(form.cleaned_data)
+            input_code = form.cleaned_data.pop('code')  # 既剔除了code，又返回了code值
             user_obj = UserInfo.objects.filter(**form.cleaned_data).first()
             if user_obj is None:
                 form.add_error('password', '用户名or密码错误')
                 return render(request, 'login.html', {'form': form})
-            request.session['info'] = {'id':user_obj.id, 'name':user_obj.name}
+            elif str(input_code).upper() != str(request.session.get('img_code')).upper():
+                form.add_error('code', '验证码错误')
+                return render(request, 'login.html', {'form': form})
+            request.session['info'] = {'id': user_obj.id, 'name': user_obj.name}
+            print(request.session['info'])
             return redirect('/usr/list/')
 
         return render(request, 'login.html', {'form': form})
+
+
+def img_code(request):
+    img, code = check_code()
+    print(code)
+    request.session['img_code'] = code
+    request.session.set_expiry(60 * 60 * 24 * 7)
+
+    stream = BytesIO()
+    img.save(stream, 'png')
+    return HttpResponse(stream.getvalue())
+
+
+def logout(request):
+    request.session.clear()
+    return redirect('/login/')
+
+
+class TaskModelForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs = {'class': 'form-control', 'placeholder': field.label}
+
+
+def task(request):
+    form = TaskModelForm()
+    return render(request, 'task_list.html', {'form': form})
+
+
+@csrf_exempt
+def task_ajax(request):
+    print(request.GET)
+    print(request.POST)
+    data_dict = {'status': True, 'data': [1, 2, 3, 4, 56]}
+    json_str = json.dumps(data_dict)
+    return HttpResponse(json_str)
+
+
+@csrf_exempt
+def task_add(request):
+    print(request.POST)
+    form = TaskModelForm(data=request.POST)
+    if form.is_valid():
+        form.save()
+
+        return HttpResponse(json.dumps({'status': True}))
+
+    data_dict = {'status': False, 'error': form.errors}
+    return HttpResponse(json.dumps(data_dict, ensure_ascii=False))
+
+
+class OrderModelForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        # fields = '__all__'
+        exclude = ['oid', 'user']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs = {'class': 'form-control', 'placeholder': field.label}
+
+
+def order_list(request):
+    form = OrderModelForm()
+    order_set = Order.objects.all().order_by('-id')
+    query_dict: QueryDict = copy.deepcopy(request.GET)  # 保留GET的q查询参数
+    query_dict._mutable = True
+    page = Fenye(request, order_set, query_dict=query_dict)
+
+    context = {'form': form, 'order_set': page.queryset, 'page_string': page.html()}
+    return render(request, 'order_list.html', context)
+
+
+@csrf_exempt
+def order_add(request):
+    form = OrderModelForm(data=request.POST)
+    if form.is_valid():
+        rnd_oid = datetime.now().strftime('%Y%m%d%H%M%S') + str(random.randint(10000, 99999))
+        form.instance.oid = rnd_oid
+        form.instance.user_id = request.session.get('info').get('id')
+        form.save()
+        return JsonResponse({'status': True})
+    return JsonResponse({'status': False, 'error': form.errors})
+
+
+def order_delete(request):
+    uid = request.GET.get('uid')
+    item = Order.objects.filter(id=uid)
+    if not item.exists():
+        return JsonResponse({'status': False, 'error': '该订单不存在'})
+    item.delete()
+    return JsonResponse({'status': True})
+
+
+@csrf_exempt
+def order_edit(request):
+    if request.method == 'POST':
+        # 传给后端的只有id信息
+        print('POST is ', request.POST)
+        uid = request.GET.get('uid')
+        row = Order.objects.filter(id=uid).first()
+        formx = OrderModelForm(data=request.POST, instance=row)
+
+        if formx.is_valid():
+            print('进入了保存')
+            formx.save()
+            print('保存了')
+            return JsonResponse({'status': True})
+        else:
+            print('post存在错误')
+            return JsonResponse({'status': False, 'error': formx.errors})
+        # if not formx.is_valid():
+        #     for field in formx:
+        #         if field.errors:
+        #             print(f"Field {field.name} has errors: {field.errors}")
+
+    if request.method == 'GET':
+        print('走了GET方法')
+        uid = request.GET.get('uid')
+        item_dict = Order.objects.filter(id=uid).values('id', 'oid', 'title', 'price', 'status', 'user_id').first()
+        if not item_dict:
+            return JsonResponse({'status': False, 'error': '该订单不存在'})
+
+        result = {
+            'status': True,
+            'data': item_dict
+        }
+        return JsonResponse(result)

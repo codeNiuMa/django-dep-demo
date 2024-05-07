@@ -12,6 +12,8 @@ class Department(models.Model):
 
 
 class UserInfo(models.Model):
+    def __str__(self):
+        return self.name
     # 创建字段
     name = models.CharField(max_length=32, verbose_name='姓名')
     password = models.CharField(max_length=64, verbose_name='密码')
@@ -39,7 +41,28 @@ class PrettyNum(models.Model):
     status = models.SmallIntegerField(choices=((1, '不可用'), (2, '可用')),
                                       verbose_name='状态', default=2)
 
+
 class Admin(models.Model):
     username = models.CharField(max_length=32, verbose_name='用户名')
     password = models.CharField(max_length=64, verbose_name='密码')
 
+
+class Task(models.Model):
+    level_choices = (
+        (1, '紧急'), (2, '重要'), (3, '普通'))
+    level = models.SmallIntegerField(choices=level_choices,
+                                     verbose_name='级别', default=1)
+    title = models.CharField(max_length=32, verbose_name='标题')
+    detail = models.TextField(verbose_name='详情')
+    user = models.ForeignKey(to='UserInfo', to_field='id', on_delete=models.CASCADE)
+
+class Order(models.Model):
+    oid = models.CharField(max_length=64, verbose_name='订单号')
+    title = models.CharField(max_length=32, verbose_name='标题')
+    price = models.IntegerField(verbose_name='价格')
+    status_choices = (
+        (1, '待支付'),
+        (2, '已支付'),
+    )
+    status = models.SmallIntegerField(choices=status_choices, default=1, verbose_name='状态')
+    user = models.ForeignKey(to='UserInfo', to_field='id', on_delete=models.CASCADE, verbose_name='下单用户')
