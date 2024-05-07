@@ -1,0 +1,138 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                表单
+            </div>
+            <div class="panel-body">
+                <form method="post" novalidate id="addform">
+                    <div class="clearfix">
+                        {% for field in form %}
+                            <div class="col-xs-6">
+                                <div class="form-group" style="position:relative;margin-bottom: 20px">
+                                    <label>{{ field.label }}</label>
+                                    {{ field }}
+                                    <span class="error-msg" style="color: maroon;position: absolute">{{ field.errors.0 }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="col-xs-12">
+                            <button id="btnAdd" type="button" class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+        <hr/>
+        <h1>Task</h1>
+        <h3>实例1</h3>
+        {#        <input type="button" class="btn btn-primary" value="click" onclick="clickMe()">#}
+        <input id="btn1" type="button" class="btn btn-primary" value="click"/>
+        <h3>实例2</h3>
+        <input type="text" id="txtUser" placeholder="name">
+        <input type="text" id="txtpass" placeholder="pwd">
+        <input type="button" id="btn2" value="click" class="btn btn-primary">
+        <h3>实例3</h3>
+        <form id="form3">
+            <input type="text" name="txtUser" placeholder="name">
+            <input type="text" name="txtpass" placeholder="pwd">
+        </form>
+        <input type="button" id="btn3" value="click" class="btn btn-primary">
+
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        $(function () {
+            bindBtn1Event();
+            bindBtn2Event();
+            bindBtnAddEvent();
+        })
+
+        function bindBtnAddEvent() {
+            $('#btnAdd').click(function () {
+                $('.error-msg').empty();
+                $.ajax({
+                    url: '/task/add/',
+                    type: 'post',
+                    dataType: 'json',
+                    data: $('#addform').serialize(),
+                    success: function (res) {
+                        if (res.status){
+                            alert('添加成功！')
+                        }else {
+                            console.log(res.error);
+                            $.each(res.error,function (name, data) {
+                                {#console.log(name, data)#}
+                                $('#id_'+name).next().text(data[0])
+                            })
+                        }
+                        console.log(res);
+                        console.log(res.status);
+                        console.log(res.data);
+                    }
+                })
+            })
+        }
+
+        function bindBtn1Event() {
+            $('#btn1').click(function () {
+                $.ajax({
+                    url: '/task/ajax/',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        'name1': 'zhangsan',
+                        'name2': 123
+                    },
+                    success: function (res) {
+                        console.log(res);
+                        console.log(res.status);
+                        console.log(res.data);
+                    }
+                })
+            })
+        }
+
+        function bindBtn2Event() {
+            $('#btn2').click(function () {
+                $.ajax({
+                    url: '/task/ajax/',
+                    type: 'post',
+                    dataType: 'JSON',
+                    data: {
+                        'name': $('#txtUser').val(),
+                        'pwd': $('#txtpass').val()
+                    },
+                    success: function (res) {
+                        console.log(res);
+                        console.log(res.status);
+                        console.log(res.data);
+                    }
+                })
+            })
+        }
+
+        function bindBtn3Event() {
+            $('#btn3').click(function () {
+                $.ajax({
+                    url: '/task/ajax/',
+                    type: 'post',
+                    dataType: 'JSON',
+                    data: $('#form3').serialize(),
+                    success: function (res) {
+                        console.log(res);
+                        console.log(res.status);
+                        console.log(res.data);
+                    }
+                })
+            })
+        }
+
+    </script>
+
+{% endblock %}

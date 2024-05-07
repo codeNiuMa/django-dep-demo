@@ -1,6 +1,22 @@
 {% extends 'layout.html' %}
 {% block content %}
     <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-list-alt"></span>
+                从Excel批量上传
+            </div>
+            <div class="panel-body">
+                <form method="post" enctype="multipart/form-data" action="/dep/upload/">
+                    <div class="form-group">
+                        <input type="file" name="avatar">
+                    </div>
+                    <input type="submit" name="提交" class="btn">
+                </form>
+            </div>
+        </div>
+
+
         {#按钮#}
         <div style="margin-bottom: 20px">
             <a class="btn btn-success" href="/dep/add/" target="_blank">
@@ -8,6 +24,8 @@
                 新增
             </a>
         </div>
+
+
         {#table#}
         <div class="panel panel-default">
             <!-- Default panel contents -->

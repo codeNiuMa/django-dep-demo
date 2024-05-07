@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="container">
+
+        <form method="post" enctype="multipart/form-data">
+            <label>
+                <input type="text" name="username">
+            </label>
+            <input type="file" name="avatar">
+            <input type="submit" name="提交">
+
+
+        </form>
+    </div>
+{% endblock %}

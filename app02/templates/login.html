@@ -38,10 +38,38 @@
             {{ form.password }}
             <span style="color: red">{{ form.password.errors.0 }}</span>
         </div>
+        <div class="form-group">
+            <label>验证码</label>
+            <div class="row">
+                <div class="col-xs-6">
+                    {{ form.code }}
+                    <span style="color:red;">{{ form.code.errors.0 }}</span>
+                </div>
+                <div class="col-xs-6">
+                    <img id="checkcode" height="36px">
+                </div>
+            </div>
+        </div>
         <input type="submit" class="btn btn-primary" value="Login" style="display:block; margin:0 auto;">
     </form>
 
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var captchaImage = document.getElementById('checkcode');
 
+        // 定义一个函数用于更新验证码
+        function refreshCaptcha() {
+            // 为了防止浏览器缓存，可以在URL后面加上当前时间戳作为查询参数
+            captchaImage.src = '/img/?_=' + new Date().getTime();
+        }
+
+        // 绑定点击事件到验证码图片上
+        captchaImage.addEventListener('click', refreshCaptcha);
+
+        // 可选：页面加载时也刷新一次验证码
+        refreshCaptcha();
+    });
+</script>
 </body>
 </html>
